@@ -1,7 +1,5 @@
 import logging
 
-from util import Utils
-
 logging.basicConfig(
     level=logging.DEBUG,
     format='%(asctime)s [%(levelname)-5.5s] - %(message)s',
@@ -10,81 +8,95 @@ logging.basicConfig(
         logging.StreamHandler()
     ])
 
+limite_peso = int(input("Defina peso maximo da mochila: "))  # Define limite de peso da mochila
 
-class CalculoBacktracking:
-    knapsack_info = None
-    count = 0
-    list_best_result = []
-    general_index = 0
-    best_element = None
-    best_value = 0
-
-    def __init__(self):
-        self.entrada = filter(self.process_knapsack, Utils.ler_entrada('arquivo_entrada_mochila.json'))
-        # for item in self.entrada:
-        #     item.update({"id": self.count})
-        #     self.count += 1
-
-    def process_knapsack(self, value):
-        if 'knapsack' not in value['item']:
-            self.knapsack_info = value
-            return True
-
-    def calcule(self):
-        logging.info(self.entrada)
-        # for node in self.entrada:
-        self.recursive_backtracking(0)
-
-    def recursive_backtracking(self, index, lado, ultimo_lado):
-        if index > len() - 1:
-            self.recursive_backtracking(index - 1, 1)
-        else:
-            object = self.entrada[index]
-            if not self.best_value + object['value'] > self.knapsack_info['value']:
-                self.best_value + object['value']
-                self.list_best_result.append(self.entrada[index])
-                if
-            else:
-                self.recursive_backtracking(index - 1)
-
-    def generic(self):
-        def A_n_k(a, n, k, depth, used, curr, ans):
-            '''
-            Implement permutation of k items out  of n items
-            depth: start from 0, and represent the depth of the search
-            used: track what items are  in the partial solution from the set of n
-            curr: the current partial solution
-            ans: collect all the valide solutions
-            '''
-            if depth == k:  # end condition
-                ans.append(
-                    curr[::])  # use deepcopy because curr is tracking all partial solution, it eventually become []
-                return
-
-            for i in range(n):
-                if not used[i]:
-                    # generate the next solution from curr
-                    curr.append(a[i])
-                    used[i] = True
-                    print(curr)
-                    # move to the next solution
-
-                    A_n_k(a, n, k, depth + 1, used, curr, ans)
-
-                    # backtrack to previous partial state
-                    curr.pop()
-                    print('backtrack: ', curr)
-                    used[i] = False
-            return
-
-        a = [{"item": "teste", "value": 3}, {"item": "teste4", "value": 4}, {"item": "teste5", "value": 5},
-             {"item": "teste6", "value": 6}, {"item": "teste7", "value": 7}]
-        n = len(a)
-        ans = [[None]]
-        used = [False] * len(a)
-        ans = []
-        A_n_k(a, n, n, 0, used, [], ans)
-        print(ans)
+itens = (
+    ("map", 9, 150), ("compass", 13, 35), ("water", 153, 200), ("sandwich", 50, 160),
+    ("glucose", 15, 60), ("tin", 68, 45), ("banana", 27, 60), ("apple", 39, 40),
+    ("cheese", 23, 30), ("beer", 52, 10), ("suntan cream", 11, 70), ("camera", 32, 30),
+    ("t-shirt", 24, 15), ("trousers", 48, 10), ("umbrella", 73, 40), ("waterproof trousers", 42, 70),
+    ("waterproof overclothes", 43, 75), ("note-case", 22, 80), ("sunglasses", 7, 20), ("towel", 18, 12),
+    ("socks", 4, 50), ("book", 30, 10)
+)
 
 
-CalculoBacktracking().calcule()
+class Backtracking(object):
+
+    # Incializador da classe
+    def __init__(self, nome, valor, key, peso, esquerda=None, direita=None):
+        self.nome = nome
+        self.esquerda = esquerda
+        self.direita = direita
+        self.valor = valor
+        self.peso = peso
+        self.key = key
+
+    # Funcao que realiza adicao de item na arvore e busca melhor conjunto
+    def add_item(self, item, valor_mochila, peso_mochila, valor_restante, peso_restante, conjunto_atual):
+        global melhorConjunto, melhor_valor, pesoFinal  # Declaracao de variaveis globais
+        if self.key == 1:  # Se a chave for 1 item participa do conjunto corrente
+            valor_mochila += self.valor  # Valor do item e somado a mochila
+            peso_mochila += self.peso  # Peso do item e somado a mochila
+            conjunto_atual.append([self.nome, self.valor, self.peso])  # Item e adicionado ao conjunto corrente
+            if valor_mochila > melhor_valor and peso_mochila <= limite_peso:  # Se o valor da mochila for maior que o maior valor ate o momento e peso estiver no limite
+                melhorConjunto[:] = conjunto_atual  # Conjunto atual se torna melhor conjunto
+                melhor_valor = valor_mochila  # Valor da mochila se torna o melhor valor
+                pesoFinal = peso_mochila  # Seta peso do melhor conjunto
+        valor_restante -= self.valor  # Remove valor do item dos disponiveis
+        peso_restante -= self.peso  # Remove peso do item dos disponiveis
+
+        if valor_mochila + valor_restante > melhor_valor:  # Se existe a possibilidade de ocorrer um valor melhor continua percorrendo arvore
+            if self.esquerda is None and self.direita is None:  # Se nodo nao tiver filhos
+                self.esquerda = Backtracking(item[0], item[2], 0, item[1])  # Adiciona item ao nodo atual
+                self.direita = Backtracking(item[0], item[2], 1, item[1])
+                valor_mochila += item[2]
+                peso_mochila += item[1]
+                valor_restante -= item[2]
+                peso_restante -= item[1]
+                conjunto_atual.append(item)  # Insere item adicionado ao conjunto atual
+                if valor_mochila > melhor_valor and peso_mochila <= limite_peso:  # Verifica se e melhor que o melhor valor ate o momente
+                    melhorConjunto[:] = conjunto_atual  # Se for melhor torna esse o melhor conjunto
+                    melhor_valor = valor_mochila
+                    pesoFinal = peso_mochila
+                del conjunto_atual[-1]  # Remove ultimo item inserido para nao ficar duplicado no conjunto atual
+            else:  # Se nodo tiver filhor
+                self.esquerda.add_item(item, valor_mochila, peso_mochila, valor_restante, peso_restante,
+                                       conjunto_atual)  # Chama recursivamente para cada um dos nodos a funcao atual
+                self.direita.add_item(item, valor_mochila, peso_mochila, valor_restante, peso_restante, conjunto_atual)
+        if self.key == 1:  # Se nodo atual foi inserido no conjunto atual, ele e removido
+            del conjunto_atual[-1]
+
+
+# Calcula valor e peso total dos itens
+pesoRestante = valorRestante = 0
+for item in itens:
+    valorRestante += item[2]
+    pesoRestante += item[1]
+logging.info(f"*** Valor total dos itens: {valorRestante} - Peso total dos itens: {pesoRestante} ***\n")
+
+# Declara mochila como vazia
+valor_mochila = peso_mochila = 0
+
+# Inicializa raiz da arvore
+raiz = Backtracking("root", 0, 0, 0, 0)
+raiz.esquerda = None
+raiz.direita = None
+
+# Declara variaveis que irao armazenar valores finais
+pesoFinal = 0
+melhor_valor = 0
+melhorConjunto = []
+
+# Para cada um dos itens chama funcao para inseri-lo na arvore e buscar melhor conjunto
+for item in itens:
+    conjunto_atual = []
+    logging.info(item)
+    raiz.add_item(item, valor_mochila, peso_mochila, valorRestante, pesoRestante, conjunto_atual)
+    logging.info(f"- Melhor valor ate o momento: {melhor_valor} | Peso: {pesoFinal}")
+
+# Exibindo resultados finais
+logging.info(f"Valor total dos itens na mochila: {melhor_valor}")
+logging.info(f"Peso total dos itens na mochila: {pesoFinal}")
+logging.info("Conjunto de melhor aproveitamento na mochila:")
+for item in melhorConjunto:
+    logging.info(item)

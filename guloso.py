@@ -31,28 +31,25 @@ for problem in matrix:
     best_know_solution  = int(problem[1][2])
     bin_counter         = 0
     #print(capacity,number_of_items,best_know_solution)
-    aux_list = problem[2:]
+    aux_list            = problem[2:]
     aux_list.sort()
-    current_weight = 0
-    i = 1
-    teste = 0
+    current_weight      = 0
+    i                   = 1
+    teste               = 0
     while len(aux_list) > 0:
         if aux_list[-i] + current_weight <= capacity:
-            current_weight += aux_list[-i]
+            current_weight  += aux_list[-i]
             aux_list.pop(-i)
-            i = 1
+            i               = 1
         else:
             i += 1
-        if (i >= len(aux_list) or current_weight == capacity) and len(aux_list) > 0:
-            #print(current_weight + aux_list[-i+1])
-            current_weight = 0
-            i = 1
-            bin_counter += 1
+        if (
+            i >= len(aux_list) or 
+            current_weight == capacity
+        ) and 
+        len(aux_list) > 0:
+            current_weight  = 0
+            i               = 1
+            bin_counter     += 1
     print(f"Foi possível encher {bin_counter} bins no problema {problem[0]} usando o algoritmo guloso.")
 
-
-
-
-
-
-    

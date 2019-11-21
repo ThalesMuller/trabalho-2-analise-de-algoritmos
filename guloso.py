@@ -46,8 +46,7 @@ for problem in matrix:
         if (
             i >= len(aux_list) or 
             current_weight == capacity
-        ) and 
-        len(aux_list) > 0:
+        ) and len(aux_list) > 0:
             current_weight  = 0
             i               = 1
             bin_counter     += 1

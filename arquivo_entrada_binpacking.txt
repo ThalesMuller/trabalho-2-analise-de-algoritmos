@@ -8,8 +8,8 @@ For each test problem (p=1,...,P) in turn:
 
 
 20
- u120_00 
- 150 120 48
+u120_00
+150 120 48
 42
 69
 67

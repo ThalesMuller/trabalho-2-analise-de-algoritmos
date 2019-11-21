@@ -1,4 +1,4 @@
-class CalculoEnxameDeParticulas():
+class CalculoEnxameDeParticulas:
 
-    def ler_entrada():
+    def ler_entrada(self):
         pass

@@ -2,9 +2,13 @@
 
 #### Objetivo é implementar os algoritmos de otimização
 
-- Algoritmo guloso  
-    Entrada: bin packing  
-- Algoritmo backtracking  
-    Entrada: mochila   
-- Algoritmo Enxame de partículas  
-    Entrada: mochila  
+- **Algoritmo:** Guloso  
+  **Entrada:** Bin packing  
+  
+  
+- **Algoritmo:** Backtracking  
+  **Entrada:** Mochila   
+  
+  
+- **Algoritmo:** Enxame de partículas  
+  **Entrada:** Mochila  

@@ -1,4 +1,4 @@
-text_file = open("arquivo_entrada_binpacking.txt")
+text_file = open("../arquivo_entrada_binpacking.txt")
 
 matrix = []
 i = 0
@@ -51,3 +51,4 @@ for problem in matrix:
             i = 1
             bin_counter += 1
     print(f"Foi possível encher {bin_counter} bins no problema {problem[0]} usando o algoritmo guloso.")
+input()

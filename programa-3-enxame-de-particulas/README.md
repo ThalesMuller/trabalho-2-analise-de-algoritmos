@@ -10,7 +10,7 @@
 #### Para editar esse programa:
 
 1. No Prompt de comando, instale o TypeScript com o comando `npm i typescript -g`
-2. Execute também o comando `npm i @types/node`
+2. Execute também o comando `npm i @types/node --save-dev`
 3. A parte princípal do programa se encontra no arquivo _main.ts_, mas existem algumas dependências dos arquivos _interfaces.ts_ e _constants.ts_
 4. Para compilar, execute o comando `tsc ./main.ts`
 5. O compilador ira gerar um arquivo chamado _main.js_

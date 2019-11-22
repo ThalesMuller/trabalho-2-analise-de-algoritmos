@@ -1,6 +1,0 @@
-https://github.com/ThalesMuller/trabalho-2-analise-de-algoritmos.git
-
-Algoritmos a implementar:
-•	Algoritmo guloso (bin packing)
-•	Algoritmo backtracking (mochila)
-•	Algoritmo Enxame de partículas (mochila)

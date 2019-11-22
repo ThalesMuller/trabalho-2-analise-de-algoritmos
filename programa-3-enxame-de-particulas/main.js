@@ -29,7 +29,7 @@ var Swarm = /** @class */ (function () {
             console.table(_this.sortKnapsack(_this.possibleItems));
         };
         this.loadInput = function () {
-            var input = require('./arquivo_entrada_mochila.json');
+            var input = require('../arquivo_entrada_mochila.json');
             var filter = input.filter(function (r) { return r.item == 'knapsack'; })[0];
             _this.maxWeight = input.splice(input.indexOf(filter), 1)[0].weight;
             var insertCostBenefit = input.map(function (r) {

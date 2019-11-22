@@ -37,7 +37,7 @@ class Swarm {
     }
 
     private loadInput = () => {
-        let input: IKnapsackItem[] = require('./arquivo_entrada_mochila.json');
+        let input: IKnapsackItem[] = require('../arquivo_entrada_mochila.json');
         let filter: IKnapsackItem = input.filter((r: IKnapsackItem) => r.item == 'knapsack')[0];
 
         this.maxWeight = input.splice(input.indexOf(filter), 1)[0].weight;

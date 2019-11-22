@@ -100,3 +100,4 @@ logging.info(f"Peso total dos itens na mochila: {pesoFinal}")
 logging.info("Conjunto de melhor aproveitamento na mochila:")
 for item in melhorConjunto:
     logging.info(item)
+input()

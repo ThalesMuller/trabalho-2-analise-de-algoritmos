@@ -1,72 +1,126 @@
 //imports
-
-//consts
-const PARTICLE_QUANTITY = 10
-const MAX_LOOP_ITERACTIONS = 1000
-const WEIGHT_INDEX = 0
-const VALUE_INDEX = 1
-const COGNITIVE_IMPORTANCE = 1
-const SOCIAL_IMPORTANCE = 2
-const INERTIA_IMPORTANCE = 1
-
-//interfaces
-interface IParticle {
-    position: number[],
-    velocity: number[],
-    cognitiveBestPosition?: number[]
-}
-
-interface IKapsackItem {
-    item: string,
-    weight: number,
-    value: number
-}
+import { PARTICLE_QUANTITY, MAX_LOOP_ITERACTIONS, COGNITIVE_IMPORTANCE, SOCIAL_IMPORTANCE, ORDER_BY } from "./constants";
+import { IKnapsackItem, IParticle } from "./interfaces";
 
 //classes
 class Swarm {
-    private r1: number;
-    private r2: number;
     private maxWeight: number;
     private maxValue: number;
-    private possibleItems: IKapsackItem[];
+    private possibleItems: IKnapsackItem[];
     private currentLoopIteraction: number = 0
-    private socialBestPosition: number[];
+    private socialBestSolution: IKnapsackItem[] = [];
     private particles: IParticle[] = [];
 
     constructor() {
         this.loadInput();
         this.calculateMaxValue();
+
+        this.logConfigs();
+
         this.populateParticles();
         this.mainLoop();
     }
 
+    private logConfigs = () => {
+        let systemConfig = `-- Configurações utilizadas --\n`
+        let quantParticulasUsadas = `\tQuantidade de partículas utilizadas: ${PARTICLE_QUANTITY}\n`;
+        let maxLoopIteractions = `\tQuantidade máxima de iterações do loop: ${MAX_LOOP_ITERACTIONS}\n`;
+        let maxKnapsackWeight = `\tPeso máximo: ${this.maxWeight}\n`;
+        let maxKnapsackValue = `\tMaior valor possivel: ${this.maxValue}\n`;
+        let sortType = `\tTipo de ordenação: ${ORDER_BY}\n`;
+        let bagItemsQuantity = `\tQuantidade de itens na mochila: ${this.possibleItems.length}\n\n`;
+
+        console.log(systemConfig + quantParticulasUsadas + maxLoopIteractions + maxKnapsackWeight + maxKnapsackValue + sortType + bagItemsQuantity);
+
+        console.log("Itens de entrada:\n");
+        console.table(this.sortKnapsack(this.possibleItems));
+    }
 
     private loadInput = () => {
-        let input: IKapsackItem[] = require('./arquivo_entrada_mochila.json');
-        let filter: IKapsackItem = input.filter((r: IKapsackItem) => r.item == 'knapsack')[0];
+        let input: IKnapsackItem[] = require('./arquivo_entrada_mochila.json');
+        let filter: IKnapsackItem = input.filter((r: IKnapsackItem) => r.item == 'knapsack')[0];
 
         this.maxWeight = input.splice(input.indexOf(filter), 1)[0].weight;
-        this.possibleItems = input;
+
+        let insertCostBenefit = input.map(r => {
+            return {
+                item: r.item,
+                weight: r.weight,
+                value: r.value,
+                costBenefit: (r.value / r.weight).toFixed(2)
+            };
+        });
+
+        this.possibleItems = insertCostBenefit;
     }
 
-    private newParticleVelocity = (particle: IParticle) => {
-        let inertia = [INERTIA_IMPORTANCE * particle.velocity[VALUE_INDEX], INERTIA_IMPORTANCE * particle.velocity[WEIGHT_INDEX]];
-        let cognitive = [COGNITIVE_IMPORTANCE * this.r1 * particle.position[VALUE_INDEX], COGNITIVE_IMPORTANCE * this.r1 * particle.position[WEIGHT_INDEX]];
-        let social = [SOCIAL_IMPORTANCE * this.r2 * particle.position[VALUE_INDEX], SOCIAL_IMPORTANCE * this.r2 * particle.position[WEIGHT_INDEX]];
+    private newKnapsack = (particle?: IParticle): IKnapsackItem[] => {
+        let newKnapsack: IKnapsackItem[] = [];
+        let possibleItems = [...this.possibleItems];
+        let knapsackReady = false;
 
-        let newVelocity = [inertia[VALUE_INDEX] + cognitive[VALUE_INDEX] + social[VALUE_INDEX], inertia[WEIGHT_INDEX] + cognitive[WEIGHT_INDEX] + social[WEIGHT_INDEX]];
+        if (particle) {
+            let socialBestSolution = [...this.socialBestSolution];
+            let cognitiveBestSolution = [...particle.cognitiveBestSolution]
+            let quantFromSocial = 0;
+            let quantFromCognitive = 0;
 
-        particle.velocity = newVelocity;
+            while (!knapsackReady) {
+                let item: IKnapsackItem;
+
+                let filterPossibleItems = possibleItems.filter(r => {
+                    return this.getKnapsackWeight(newKnapsack) + r.weight <= this.maxWeight && (!newKnapsack.includes(r))
+                });
+
+                if (filterPossibleItems.length) {
+                    if (quantFromSocial < SOCIAL_IMPORTANCE) {
+                        let filterSocial = socialBestSolution.filter(r => {
+                            return this.getKnapsackWeight(newKnapsack) + r.weight <= this.maxWeight && (!newKnapsack.includes(r))
+                        });
+
+                        item = filterSocial.splice(this.choice(0, filterSocial.length), 1)[0];
+
+                        quantFromSocial++;
+                    }
+                    else if (quantFromCognitive < COGNITIVE_IMPORTANCE) {
+                        let filterCognitive = cognitiveBestSolution.filter(r => {
+                            return this.getKnapsackWeight(newKnapsack) + r.weight <= this.maxWeight && (!newKnapsack.includes(r))
+                        });
+
+                        item = filterCognitive.splice(this.choice(0, filterCognitive.length), 1)[0];
+
+                        quantFromCognitive++;
+                    }
+                    else
+                        item = filterPossibleItems.splice(this.choice(0, filterPossibleItems.length), 1)[0];
+
+                    newKnapsack.push(item);
+                }
+                else {
+                    knapsackReady = true;
+                }
+            }
+        }
+        else {
+            while (!knapsackReady) {
+                let filter = possibleItems.filter(r => this.getKnapsackWeight(newKnapsack) + r.weight <= this.maxWeight);
+
+                if (filter.length) {
+                    let item: IKnapsackItem = possibleItems.splice(this.choice(0, filter.length), 1)[0];
+                    newKnapsack.push(item);
+                }
+                else {
+                    knapsackReady = true;
+                }
+            }
+        }
+
+        return newKnapsack;
     }
 
-    private newParticlePosition = (particle: IParticle) => {
-        this.newParticleVelocity(particle);
-        particle.position = particle.position = particle.velocity;
-    }
-
-    private newRandoms = () => {
-        this.r1 = Math.random();
-        this.r2 = Math.random();
+    private choice = (min: number = 0, max: number = 1): number => {
+        let choice = Math.floor(Math.random() * max) + min;
+        return choice;
     }
 
     private calculateMaxValue = () => {
@@ -79,38 +133,8 @@ class Swarm {
         this.maxValue = maxValue;
     }
 
-    private getInicialPosition = () => {
-        let possibleItems = this.possibleItems;
-        let knapsack: IKapsackItem[] = [];
-
-        while (this.getKnapsackWeight(knapsack) < this.maxWeight) {
-            let choice = possibleItems[Math.floor(Math.random() * possibleItems.length)];
-            let item = possibleItems.splice(possibleItems.indexOf(choice), 1)[0]
-            knapsack.push(item)
-            while (this.getKnapsackWeight(knapsack) > this.maxWeight) {
-                let minValue: number = this.maxValue;
-
-                knapsack.forEach(r => minValue = r.value < minValue ? r.value : minValue)
-
-                possibleItems.push(knapsack.slice(knapsack.indexOf(knapsack.filter(r => r.value == minValue)[0]), 1)[0])
-            }
-
-            let stillHavePossibleItems: boolean = false;
-
-            possibleItems.forEach(x => {
-                if (x.weight <= this.maxWeight - this.getKnapsackWeight(knapsack))
-                    stillHavePossibleItems = true;
-                else
-                    possibleItems.splice(possibleItems.indexOf(x), 1);
-            });
-
-            if (!stillHavePossibleItems)
-                return [this.getKnapsackWeight(knapsack), this.getKnapsackValue(knapsack)];
-        }
-    }
-
-    private getKnapsackWeight = (knapsack: IKapsackItem[]) => {
-        if(knapsack.length==0)
+    private getKnapsackWeight = (knapsack: IKnapsackItem[]): number => {
+        if (knapsack.length == 0)
             return 0;
 
         let weights = knapsack.map(r => r.weight);
@@ -119,7 +143,7 @@ class Swarm {
         return total;
     }
 
-    private getKnapsackValue = (knapsack: IKapsackItem[]) => {
+    private getKnapsackValue = (knapsack: IKnapsackItem[]): number => {
         if (knapsack.length == 0)
             return 0;
 
@@ -132,43 +156,100 @@ class Swarm {
     private populateParticles = () => {
         for (let x = 0; x < PARTICLE_QUANTITY; x++) {
             let particle: IParticle = {
-                position: this.getInicialPosition(),
-                velocity: [0, 0]
+                knapsack: this.newKnapsack()
             }
-            particle.cognitiveBestPosition = particle.position;
+
+            particle.cognitiveBestSolution = particle.knapsack;
 
             if (x == 0)
-                this.socialBestPosition = particle.position;
+                this.socialBestSolution = particle.knapsack;
 
             this.particles.push(particle)
         }
     }
 
+    private sortKnapsack = (list: IKnapsackItem[]): IKnapsackItem[] => {
+        let sortedList;
+
+        switch (ORDER_BY) {
+            case 'title':
+                sortedList = list.sort();
+                break;
+
+            case 'weight':
+                sortedList = list.sort((a, b) => {
+                    if (a.weight > b.weight)
+                        return 1;
+                    if (a.weight < b.weight)
+                        return -1;
+                    return 0;
+                });
+                break;
+
+            case 'value':
+                sortedList = list.sort((a, b) => {
+                    if (a.value > b.value)
+                        return 1;
+                    if (a.value < b.value)
+                        return -1;
+                    return 0;
+                });
+                break;
+
+            case 'costBenefit':
+                sortedList = list.sort((a, b) => {
+                    if (Number(a.costBenefit) > Number(b.costBenefit))
+                        return 1;
+                    if (Number(a.costBenefit) < Number(b.costBenefit))
+                        return -1;
+                    return 0;
+                });
+                break;
+
+            case 'noSort':
+                sortedList = list;
+                break;
+
+            default:
+                sortedList = list.sort();
+                break;
+        }
+
+        return sortedList;
+    }
+
     private mainLoop = () => {
-        this.newRandoms();
-
         this.particles.forEach(particle => {
-            this.newParticlePosition(particle);
+            particle.knapsack = this.newKnapsack(particle);
 
-            if (particle.position[VALUE_INDEX] > particle.cognitiveBestPosition[VALUE_INDEX]) {
-                particle.cognitiveBestPosition = particle.position;
+            if (this.getKnapsackValue(particle.knapsack) > this.getKnapsackValue(particle.cognitiveBestSolution)) {
+                particle.cognitiveBestSolution = particle.knapsack;
 
-                if (particle.position[VALUE_INDEX] > this.socialBestPosition[VALUE_INDEX]) {
-                    this.socialBestPosition = particle.position;
+                if (this.getKnapsackValue(particle.knapsack) > this.getKnapsackValue(this.socialBestSolution)) {
+                    this.socialBestSolution = particle.knapsack;
                 }
             }
 
         })
 
         let isLoopInRange = this.currentLoopIteraction < MAX_LOOP_ITERACTIONS;
-        let isGlobalValuePerfect = this.socialBestPosition[VALUE_INDEX] < this.maxValue;
+        let isGlobalValuePerfect = this.getKnapsackValue(this.socialBestSolution) < this.maxValue;
         if (isLoopInRange && isGlobalValuePerfect) {
             this.currentLoopIteraction++;
             this.mainLoop()
         }
         else {
-            let response = `Melhor solução encontrada:\n\tPeso: ${this.socialBestPosition[WEIGHT_INDEX]}\n\tValor: ${this.socialBestPosition[VALUE_INDEX]}`;
-            console.log(response);
+            let quantIteracoes = `\tQuantidade total de iterações: ${this.currentLoopIteraction}\n`;
+            let peso = `\tPeso: ${this.getKnapsackWeight(this.socialBestSolution)}\n`;
+            let valor = `\tValor: ${this.getKnapsackValue(this.socialBestSolution)}\n`;
+            let tamanhoMochila = `\tQuantidade de itens na mochila: ${this.socialBestSolution.length}\n`;
+
+            console.log("Melhor solução encontrada:\n" + quantIteracoes + peso + valor + tamanhoMochila);
+
+            console.log("Provavel mochila perfeita:\n");
+            console.table(this.sortKnapsack(this.socialBestSolution));
         }
     }
 }
+
+let swarm = new Swarm();

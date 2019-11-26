@@ -15,6 +15,7 @@ var Swarm = /** @class */ (function () {
         var _this = this;
         this.currentLoopIteraction = 0;
         this.socialBestSolution = [];
+        this.socialBestSolutionIteractionIndex = 0;
         this.particles = [];
         this.logConfigs = function () {
             var systemConfig = "-- Configura\u00E7\u00F5es utilizadas --\n";
@@ -181,6 +182,7 @@ var Swarm = /** @class */ (function () {
                     particle.cognitiveBestSolution = particle.knapsack;
                     if (_this.getKnapsackValue(particle.knapsack) > _this.getKnapsackValue(_this.socialBestSolution)) {
                         _this.socialBestSolution = particle.knapsack;
+                        _this.socialBestSolutionIteractionIndex = _this.currentLoopIteraction;
                     }
                 }
             });
@@ -191,11 +193,11 @@ var Swarm = /** @class */ (function () {
                 _this.mainLoop();
             }
             else {
-                var quantIteracoes = "\tQuantidade total de itera\u00E7\u00F5es: " + _this.currentLoopIteraction + "\n";
+                var quantIteracoesBestSolution = "\tIterac\u00E3o onde encontrou a melhor solu\u00E7\u00E3o: " + _this.socialBestSolutionIteractionIndex + "\n";
                 var peso = "\tPeso: " + _this.getKnapsackWeight(_this.socialBestSolution) + "\n";
                 var valor = "\tValor: " + _this.getKnapsackValue(_this.socialBestSolution) + "\n";
                 var tamanhoMochila = "\tQuantidade de itens na mochila: " + _this.socialBestSolution.length + "\n";
-                console.log("Melhor solução encontrada:\n" + quantIteracoes + peso + valor + tamanhoMochila);
+                console.log("Melhor solução encontrada:\n" + quantIteracoesBestSolution + peso + valor + tamanhoMochila);
                 console.log("Provavel mochila perfeita:\n");
                 console.table(_this.sortKnapsack(_this.socialBestSolution));
             }

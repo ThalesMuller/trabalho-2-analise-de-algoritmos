@@ -9,6 +9,8 @@ class Swarm {
     private possibleItems: IKnapsackItem[];
     private currentLoopIteraction: number = 0
     private socialBestSolution: IKnapsackItem[] = [];
+    private socialBestSolutionIteractionIndex:number = 0;
+
     private particles: IParticle[] = [];
 
     constructor() {
@@ -227,6 +229,7 @@ class Swarm {
 
                 if (this.getKnapsackValue(particle.knapsack) > this.getKnapsackValue(this.socialBestSolution)) {
                     this.socialBestSolution = particle.knapsack;
+                    this.socialBestSolutionIteractionIndex = this.currentLoopIteraction;
                 }
             }
 
@@ -239,12 +242,12 @@ class Swarm {
             this.mainLoop()
         }
         else {
-            let quantIteracoes = `\tQuantidade total de iterações: ${this.currentLoopIteraction}\n`;
+            let quantIteracoesBestSolution = `\tIteracão onde encontrou a melhor solução: ${this.socialBestSolutionIteractionIndex}\n`;
             let peso = `\tPeso: ${this.getKnapsackWeight(this.socialBestSolution)}\n`;
             let valor = `\tValor: ${this.getKnapsackValue(this.socialBestSolution)}\n`;
             let tamanhoMochila = `\tQuantidade de itens na mochila: ${this.socialBestSolution.length}\n`;
 
-            console.log("Melhor solução encontrada:\n" + quantIteracoes + peso + valor + tamanhoMochila);
+            console.log("Melhor solução encontrada:\n" + quantIteracoesBestSolution + peso + valor + tamanhoMochila);
 
             console.log("Provavel mochila perfeita:\n");
             console.table(this.sortKnapsack(this.socialBestSolution));

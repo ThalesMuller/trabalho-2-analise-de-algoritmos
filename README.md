@@ -12,3 +12,9 @@
   
 - **Algoritmo:** Enxame de partículas  
   **Entrada:** Mochila  
+
+#### Alunos
+
+- Eduardo Meurer 
+- Mateus Gündel
+- Thales Müller
